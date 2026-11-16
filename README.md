@@ -1,4 +1,48 @@
-# 哔哩漫游M
+# 哔哩漫游M（8.86 适配版）
+
+> [!IMPORTANT]
+>
+> 本仓库基于 [sakarie9/BiliRoamingM](https://github.com/sakarie9/BiliRoamingM) v1.23.3.8，
+> 额外适配 **哔哩哔哩 8.86.0（versionCode 8860400）**：该版本里 12 个补丁的锚点失效，
+> 这里逐个重新定位后 **79 个补丁全部可以打上**（实测 0 失败）。
+
+## 8.86 上改了什么
+
+| 补丁 | 8.86 的变化与处理 |
+|---|---|
+| Video default quality | 手指纹改匹配 `"quality settings:"`（`"get free data failed"` 已删除） |
+| Cache redirect | `OnOgvDownloadFingerprint` 改为可选，由 Theseus 指纹覆盖 `OgvDownloadService.j(Context)` |
+| BL route intercept | 按类名定位 `RouteRequest$Builder`，`RouteRequest` 构造器接受 1 个 `Uri` 参数 |
+| Remember playback speed | 兼容 lambda 形态 `(widget, String)`，取 `p1` 直接 `Float.parseFloat` |
+| Force hardware codec | 放弃单指纹，全量扫描 `mEnableHwCodec` 的读写点；类型匹配改用 format 接口 |
+| Force comment time navigable | 改用寄存器追踪找 `seekEnabled`（8.86 在 `toString()` 开头一次性读完所有字段） |
+| Subtitle import/save | `recordSelectedSubtitle` 变成 `(ZZ)V` |
+| Auto like / Live room auto float / Moss / Pegasus banner | 8.86 目标不存在时优雅跳过，不再中断整个补丁流程 |
+| Bili layout adjust | `string/theseus_playlist_default_order` 已删，改用字面量 |
+| Remove vip section | `id/mine_vip_layout` 改名为 `mine_vip_layout_refactoring` |
+| JSON / Pegasus / Player | `Dm`/`DmAdvert`/`FeedAdInfo` 迁到 `com.bilibili.adcommon.data.model`；`onOnlineInfoChanged` 改 `Object` 参数 |
+| 构建 | 私有 GitHub Packages 的 patcher 取不到时，回退到 `revanced-cli` 内嵌的 `19.3.1.1` |
+
+## 构建
+
+```bash
+# 依赖：JDK 17、Android SDK（build-tools 36 / platform 35）、NDK 26.3
+./gradlew distDev
+# 产物：build/BiliRoamingM-<version>.apk  与  build/BiliRoamingM-<version>.jar
+```
+
+打补丁（以 8.86 官方包为例）：
+
+```bash
+java -jar revanced-cli.jar patch   --merge integrations.apk   --patch-bundle patches.jar   --signing-levels 1,2,3   bilibili_8.86.0.apk
+```
+
+> 若 `:patches` 报 `Could not resolve kofua.app.revanced:revanced-patcher`，
+> 说明上游私有仓库不可访问；本仓库的 `patches/build.gradle.kts` 已支持
+> 通过 `../libs/patcher-api.jar`（从 revanced-cli 抽出）离线编译。
+
+---
+
 
 > [!IMPORTANT]
 >

@@ -1,4 +1,4 @@
-package com.bilibili.adcommon.basic.model;
+package com.bilibili.adcommon.data.model;
 
 import androidx.annotation.Keep;
 

@@ -32,8 +32,12 @@ object ForbidLiveRoomAutoFloatPatch : BytecodePatch(setOf(LiveRoomSetFloatWindow
         val (setClass, setMethod) = LiveRoomSetFloatWindowFingerprint.result?.let {
             it.classDef to it.method
         } ?: throw LiveRoomSetFloatWindowFingerprint.exception
+        val setInterface = setClass.interfaces.firstOrNull() ?: run {
+            println("[Forbid live room auto float] skipped: setter class has no interface")
+            return
+        }
         val iSetMethodSign = setMethod.toMutable().apply {
-            definingClass = setClass.interfaces.first()
+            definingClass = setInterface
         }.toString()
         context.classes.asSequence().flatMap { it.methods }.filter { m ->
             m.accessFlags.let { !it.isAbstract() && !it.isNative() }
@@ -60,6 +64,6 @@ object ForbidLiveRoomAutoFloatPatch : BytecodePatch(setOf(LiveRoomSetFloatWindow
                     ExternalLabel("next", getInstruction(index + 1))
                 )
             }
-        } ?: throw PatchException("not found startMiniFloatPlay method")
+        } ?: println("[Forbid live room auto float] skipped: caller not found")
     }
 }

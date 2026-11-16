@@ -110,7 +110,14 @@ object SubtitleImportSavePatch {
                 subtitle.addSubtitles(newSubtitle)
                 interactLayerService.callMethod(setDmViewReplyMethod, newDmViewReply)
                 interactLayerService.callMethod(loadSubtitleMethod, newSubtitle, null)
-                interactLayerService.callMethod(recordSelectedSubtitleMethod, false)
+                val recordMethod = interactLayerService.javaClass.methods.firstOrNull {
+                    it.name == recordSelectedSubtitleMethod && it.parameterTypes.size == 2
+                }
+                if (recordMethod != null) {
+                    recordMethod.invoke(interactLayerService, false, true)
+                } else {
+                    interactLayerService.callMethod(recordSelectedSubtitleMethod, false)
+                }
                 widgetService.callMethod(hideWidgetMethod, widget.getField(widgetTokenField))
                 Utils.runOnMainThread(800L) {
                     val gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL

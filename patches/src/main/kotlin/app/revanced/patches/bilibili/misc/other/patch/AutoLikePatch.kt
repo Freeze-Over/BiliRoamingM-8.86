@@ -7,6 +7,7 @@ import app.revanced.patcher.patch.PatchException
 import app.revanced.patcher.patch.annotation.CompatiblePackage
 import app.revanced.patcher.patch.annotation.Patch
 import app.revanced.patches.bilibili.misc.other.fingerprints.SectionFingerprint
+import app.revanced.patches.bilibili.utils.resolveOrNull
 import app.revanced.util.exception
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -20,13 +21,19 @@ import com.android.tools.smali.dexlib2.Opcode
         CompatiblePackage(name = "com.bilibili.app.in")
     ]
 )
-object AutoLikePatch : BytecodePatch(setOf(SectionFingerprint)) {
+object AutoLikePatch : BytecodePatch() {
     override fun execute(context: BytecodeContext) {
-        val clazz = SectionFingerprint.result?.mutableClass
-            ?: throw SectionFingerprint.exception
+        if (!SectionFingerprint.resolveOrNull(context)) {
+            println("[Auto like] skipped: SectionFingerprint not found")
+            return
+        }
+        val clazz = SectionFingerprint.result!!.mutableClass
         val likeMethod = context.classes.first { it.type == clazz.superclass }.virtualMethods.find { m ->
             m.parameterTypes.size == 1 && m.returnType == "V" && !AccessFlags.FINAL.isSet(m.accessFlags)
-        } ?: throw PatchException("can not found like method")
+        } ?: run {
+            println("[Auto like] skipped: like method not found")
+            return
+        }
         val realLikeMethod = clazz.methods.first { m ->
             m.name == likeMethod.name && m.parameterTypes == likeMethod.parameterTypes
         }

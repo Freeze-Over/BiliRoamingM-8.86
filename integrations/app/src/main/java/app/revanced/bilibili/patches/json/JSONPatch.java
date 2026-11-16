@@ -5,8 +5,8 @@ import android.text.TextUtils;
 import androidx.annotation.Keep;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.bilibili.ad.adview.videodetail.danmakuv2.model.Dm;
-import com.bilibili.ad.adview.videodetail.danmakuv2.model.DmAdvert;
+import com.bilibili.adcommon.data.model.Dm;
+import com.bilibili.adcommon.data.model.DmAdvert;
 import com.bilibili.app.authorspace.api.BiliSpace;
 import com.bilibili.app.comm.list.widget.recommend.RecommendModeGuidanceConfig;
 import com.bilibili.app.gemini.ugc.feature.share.ShareIconResult;

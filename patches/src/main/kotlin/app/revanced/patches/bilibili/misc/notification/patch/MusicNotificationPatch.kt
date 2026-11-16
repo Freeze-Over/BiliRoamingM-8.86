@@ -15,6 +15,7 @@ import app.revanced.patches.bilibili.misc.notification.fingerprints.LiveNotifica
 import app.revanced.patches.bilibili.misc.notification.fingerprints.MediaSessionCallbackApi21Fingerprint
 import app.revanced.patches.bilibili.misc.notification.fingerprints.NotificationStyleAbFingerprint
 import app.revanced.patches.bilibili.utils.*
+import app.revanced.patches.bilibili.utils.resolveOrNull
 import app.revanced.util.exception
 import app.revanced.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -37,7 +38,6 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 object MusicNotificationPatch : BytecodePatch(
     fingerprints = setOf(
         LiveNotificationHelperFingerprint,
-        NotificationStyleAbFingerprint,
         MediaSessionCallbackApi21Fingerprint,
         HeadsetMediaSessionCallbackFingerprint,
     )
@@ -45,6 +45,7 @@ object MusicNotificationPatch : BytecodePatch(
     override fun execute(context: BytecodeContext) {
         val patchClass = context.findClass("Lapp/revanced/bilibili/patches/MusicNotificationPatch;")!!.mutableClass
 
+        NotificationStyleAbFingerprint.resolveOrNull(context)
         NotificationStyleAbFingerprint.result?.mutableMethod?.addInstructionsWithLabels(
             0, """
             invoke-static {}, $patchClass->enabled()Z
@@ -55,7 +56,7 @@ object MusicNotificationPatch : BytecodePatch(
             :jump
             nop
         """.trimIndent()
-        ) ?: throw NotificationStyleAbFingerprint.exception
+        ) ?: println("[Music notification] skipped force native style: fingerprint not found")
 
         val onCreateNotificationMethod = patchClass.methods.first { it.name == "onCreateNotification" }
         arrayOf(

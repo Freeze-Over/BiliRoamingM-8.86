@@ -116,7 +116,9 @@ object MossPatch : BytecodePatch(setOf(MossServiceFingerprint, MossMiddlewareGai
                 )
             }
         } ?: throw MossServiceFingerprint.exception
-        context.findClass("Lorg/chromium/net/impl/BidirectionalStreamBuilderImpl;")?.mutableClass?.run {
+        if (context.findClass("Lorg/chromium/net/impl/BidirectionalStreamBuilderImpl;") == null) {
+            println("[Moss] skipped cronet hook: BidirectionalStreamBuilderImpl not found")
+        } else context.findClass("Lorg/chromium/net/impl/BidirectionalStreamBuilderImpl;")?.mutableClass?.run {
             val urlField = fields.first { it.name == "mUrl" }
             val requestHeadersField = fields.first { it.name == "mRequestHeaders" }
             methods.first {

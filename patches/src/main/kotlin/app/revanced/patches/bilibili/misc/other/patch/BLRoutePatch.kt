@@ -33,7 +33,7 @@ object BLRoutePatch : BytecodePatch(setOf(BLRouteBuilderFingerprint, RouteReques
         ) ?: throw BLRouteBuilderFingerprint.exception
         val result = RouteRequestFingerprint.result
         result?.mutableClass?.methods?.find { m ->
-            m.name == "<init>" && m.parameterTypes.let { it.size == 2 && it[0] == "Landroid/net/Uri;" }
+            m.name == "<init>" && m.parameterTypes.let { it.isNotEmpty() && it[0] == "Landroid/net/Uri;" }
         }?.addInstructions(
             0, """
             invoke-static {p1}, Lapp/revanced/bilibili/patches/BLRoutePatch;->intercept(Landroid/net/Uri;)Landroid/net/Uri;

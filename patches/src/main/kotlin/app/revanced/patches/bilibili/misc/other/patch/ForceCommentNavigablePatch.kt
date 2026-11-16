@@ -14,7 +14,11 @@ import app.revanced.patches.bilibili.utils.classDescriptor
 import app.revanced.patches.bilibili.utils.isAbstract
 import app.revanced.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction22c
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 @Patch(
     name = "Force comment time navigable",
@@ -39,18 +43,53 @@ object ForceCommentNavigablePatch : BytecodePatch(fingerprints = setOf(CommentCo
         """.trimIndent()
         ) ?: throw PatchException("not found PrimaryCommentMainFragment")
         CommentConfigFingerprint.result?.run {
-            val index = scanResult.stringsScanResult!!.matches.last().index
-            val seekEnabledField = mutableMethod.getInstructions().withIndex().firstNotNullOf { (i, inst) ->
-                if (i > index && inst.opcode == Opcode.IGET_BOOLEAN) {
-                    inst.getReference<FieldReference>()
-                } else null
+            val instructions = mutableMethod.getInstructions()
+            val seekEnabledIndex = scanResult.stringsScanResult!!.matches
+                .firstOrNull { it.string.contains("seekEnabled=") }?.index ?: -1
+            if (seekEnabledIndex < 0) {
+                println("[Force comment time navigable] skipped: no seekEnabled string")
+                return
             }
-            mutableClass.methods.first { m ->
-                m.parameterTypes.isEmpty() && m.returnType == "Z" && !m.accessFlags.isAbstract()
-                        && m.getInstruction(0).let {
-                    if (it.opcode == Opcode.IGET_BOOLEAN) it.getReference<FieldReference>() else null
-                } == seekEnabledField
-            }.addInstructionsWithLabels(
+            val appendIndex = instructions.indices.firstOrNull { i ->
+                i > seekEnabledIndex && instructions[i].let { inst ->
+                    inst.opcode == Opcode.INVOKE_VIRTUAL &&
+                        inst.getReference<MethodReference>()?.parameterTypes == listOf("Z")
+                }
+            } ?: run {
+                println("[Force comment time navigable] skipped: no seekEnabled append")
+                return
+            }
+            val appendRegister = (instructions[appendIndex] as Instruction35c).registerD
+            fun seekEnabledFieldValue(reg: Int): FieldReference? {
+                for (i in (appendIndex - 1) downTo 0) {
+                    val inst = instructions[i]
+                    if (inst.opcode == Opcode.IGET_BOOLEAN && (inst as Instruction22c).registerA == reg)
+                        return inst.getReference<FieldReference>()
+                    if (inst.opcode == Opcode.MOVE_FROM16 && (inst as BuilderInstruction22x).registerA == reg) {
+                        val src = inst.registerB
+                        for (j in (i - 1) downTo 0) {
+                            val inner = instructions[j]
+                            if (inner.opcode == Opcode.IGET_BOOLEAN && (inner as Instruction22c).registerA == src)
+                                return inner.getReference<FieldReference>()
+                        }
+                    }
+                }
+                return null
+            }
+            val seekEnabledField = seekEnabledFieldValue(appendRegister) ?: run {
+                println("[Force comment time navigable] skipped: no seekEnabled field")
+                return
+            }
+            val getter = mutableClass.methods.firstOrNull { m ->
+                m.parameterTypes.isEmpty() && m.returnType == "Z" &&
+                    m.implementation?.instructions?.firstOrNull()?.let { inst ->
+                        inst.opcode == Opcode.IGET_BOOLEAN && inst.getReference<FieldReference>() == seekEnabledField
+                    } == true
+            } ?: run {
+                println("[Force comment time navigable] skipped: no seekEnabled getter")
+                return
+            }
+            getter.addInstructionsWithLabels(
                 0, """
                 invoke-static {}, $patchType->enabled()Z
                 move-result v0

@@ -6,7 +6,7 @@ import androidx.annotation.Keep;
 import androidx.annotation.Nullable;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.bilibili.adcommon.basic.model.FeedAdInfo;
+import com.bilibili.adcommon.data.model.FeedAdInfo;
 import com.bilibili.app.comm.list.common.api.model.PlayerArgs;
 import com.bilibili.app.comm.list.common.data.DislikeReason;
 import com.bilibili.app.comm.list.common.data.ThreePointItem;

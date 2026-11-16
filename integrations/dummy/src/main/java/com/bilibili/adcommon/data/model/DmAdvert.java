@@ -1,4 +1,4 @@
-package com.bilibili.ad.adview.videodetail.danmakuv2.model;
+package com.bilibili.adcommon.data.model;
 
 import androidx.annotation.Nullable;
 

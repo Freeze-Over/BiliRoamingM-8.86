@@ -53,28 +53,34 @@ object PegasusPatch : BytecodePatch(
                 mutableClass.methods.add(it)
             }
         } ?: throw PegasusParserFingerprint.exception
-        val (stockBannersItemClass, bannerItemFiled) = context.classes.firstNotNullOfOrNull { c ->
+        val bannersPair = context.classes.firstNotNullOfOrNull { c ->
             if (c.superclass == "Lcom/bilibili/pegasus/api/model/BasicIndexItem;") c.fields.find {
                 it.annotation("Lcom/alibaba/fastjson/annotation/JSONField;")
                     ?.value<StringEncodedValue>("name")?.value == "banner_item"
             }?.let { c to it } else null
-        } ?: throw PatchException("not found banner item field")
-        val myBannersItemClassName = "Lapp/revanced/bilibili/meta/pegasus/BannersItem;"
-        val myBannersItemClass = context.findClass(myBannersItemClassName)!!
-        stockBannersItemClass.proxy(context).setSuperClass(myBannersItemClassName)
-        myBannersItemClass.mutableClass.methods.run {
-            find { it.name == "getBanners" }?.also { remove(it) }
-                ?.cloneMutable(3, clearImplementation = true)
-                ?.apply {
-                    addInstructions(
-                        """
-                        move-object v0, p0
-                        check-cast v0, $stockBannersItemClass
-                        iget-object v1, v0, $bannerItemFiled
-                        return-object v1
-                    """.trimIndent()
-                    )
-                }?.also { add(it) }
+        }
+        if (bannersPair == null) {
+            println("[Pegasus hook] banner item field not found, skip banner hook")
+        } else {
+            val stockBannersItemClass = bannersPair.first
+            val bannerItemFiled = bannersPair.second
+            val myBannersItemClassName = "Lapp/revanced/bilibili/meta/pegasus/BannersItem;"
+            val myBannersItemClass = context.findClass(myBannersItemClassName)!!
+            stockBannersItemClass.proxy(context).setSuperClass(myBannersItemClassName)
+            myBannersItemClass.mutableClass.methods.run {
+                find { it.name == "getBanners" }?.also { remove(it) }
+                    ?.cloneMutable(3, clearImplementation = true)
+                    ?.apply {
+                        addInstructions(
+                            """
+                            move-object v0, p0
+                            check-cast v0, $stockBannersItemClass
+                            iget-object v1, v0, $bannerItemFiled
+                            return-object v1
+                        """.trimIndent()
+                        )
+                    }?.also { add(it) }
+            }
         }
         fun MutableMethod.hookOnFeedClick() = addInstructionsWithLabels(
             0, """

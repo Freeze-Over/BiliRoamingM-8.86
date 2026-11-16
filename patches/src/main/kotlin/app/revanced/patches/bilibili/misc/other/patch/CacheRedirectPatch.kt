@@ -75,9 +75,9 @@ object CacheRedirectPatch : MultiMethodBytecodePatch(
                 }.also { methods.add(it) }
             }
         }
-        OnOgvDownloadFingerprint.result.ifEmpty {
-            throw OnOgvDownloadFingerprint.exception
-        }.forEach { r ->
+        // bilibili 8.86 dropped the OGVCacheFromType parameter; the call is covered by
+        // TheseusOnOgvDownloadFingerprint below, so an empty result here is not an error.
+        OnOgvDownloadFingerprint.result.forEach { r ->
             val originMethod = r.mutableMethod
             originMethod.cloneMutable(registerCount = 4, clearImplementation = true).apply {
                 originMethod.name += "_Origin"

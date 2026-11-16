@@ -49,7 +49,7 @@ object PlayerPatch : BytecodePatch(setOf(PlayerSeekToFingerprint, RemoteServiceH
             it.parameterTypes == listOf(onlineInfoChangeRequestType) && it.returnType == "V"
         }?.addInstructionsWithLabels(
             0, """
-            invoke-static {p1}, $playerPatchType->onOnlineInfoChanged($onlineInfoChangeRequestType)Z
+            invoke-static {p1}, $playerPatchType->onOnlineInfoChanged(Ljava/lang/Object;)Z
             move-result v0
             if-eqz v0, :jump
             return-void

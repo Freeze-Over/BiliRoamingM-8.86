@@ -12,10 +12,25 @@ plugins {
 group = "app.revanced.bilibili"
 
 dependencies {
-    implementation(libs.revanced.patcher)
+    // The kofua revanced-patcher artifact lives on a private GitHub Packages repo.
+    // Fall back to the patcher API bundled in revanced-cli.jar (same fork, 19.3.1.1)
+    // when a local copy is present.
+    val localPatcher = rootProject.file("../libs/patcher-api.jar")
+    if (localPatcher.exists()) {
+        compileOnly(files(localPatcher))
+    } else {
+        implementation(libs.revanced.patcher)
+    }
     implementation(libs.smali)
     // Used in JsonGenerator.
     implementation(libs.gson)
+}
+
+// The offline patcher api does not carry PatchSet, so the patches.json generator
+// (which is not needed to build a patch bundle) is skipped in that mode.
+val offlinePatcher = rootProject.file("../libs/patcher-api.jar").exists()
+if (offlinePatcher) {
+    sourceSets["main"].kotlin.exclude("app/revanced/generator/**")
 }
 
 tasks.jar {

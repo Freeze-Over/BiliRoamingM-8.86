@@ -12,7 +12,6 @@ import com.bapis.bilibili.app.playurl.v1.PlayAbilityConf
 import com.bapis.bilibili.app.playurl.v1.PlayViewReply
 import com.bapis.bilibili.app.playurl.v1.PlayViewReq
 import com.bilibili.lib.moss.api.MossException
-import com.bilibili.video.videodetail.VideoDetailsActivity
 import com.google.protobuf.GeneratedMessageLite
 
 object PlayURLPlayViewUGC : MossHook<PlayViewReq, PlayViewReply>() {
@@ -62,7 +61,9 @@ object PlayURLPlayViewUGC : MossHook<PlayViewReq, PlayViewReply>() {
                     val height = dashVideo.height
                     Utils.runOnMainThread {
                         val topActivity = ApplicationDelegate.getTopActivity()
-                        if (topActivity is VideoDetailsActivity) {
+                        val topActivityName = topActivity?.javaClass?.name
+                        if (topActivityName == "com.bilibili.video.videodetail.VideoDetailsActivity" ||
+                            topActivityName == "com.bilibili.ship.theseus.detail.UnitedBizDetailsActivity") {
                             val orientation = if (height > width) {
                                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                             } else {

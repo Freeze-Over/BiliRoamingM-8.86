@@ -16,28 +16,19 @@ import com.bapis.bilibili.app.viewunite.common.RelateCard;
 import com.bapis.bilibili.app.viewunite.common.RelateCardType;
 import com.bapis.bilibili.app.viewunite.common.Relates;
 import com.bapis.bilibili.playershared.BizType;
-import com.bilibili.adcommon.basic.model.FeedAdInfo;
+import com.bilibili.adcommon.data.model.FeedAdInfo;
 import com.bilibili.app.comm.list.common.api.model.PlayerArgs;
 import com.bilibili.app.comm.list.common.data.DislikeReason;
 import com.bilibili.app.comm.list.common.data.ThreePointItem;
 import com.bilibili.okretro.GeneralResponse;
 import com.bilibili.pegasus.api.model.BasicIndexItem;
 import com.bilibili.pegasus.api.modelv2.Args;
-import com.bilibili.pegasus.api.modelv2.BannerItemV2;
 import com.bilibili.pegasus.api.modelv2.BasePlayerItem;
 import com.bilibili.pegasus.api.modelv2.Config;
-import com.bilibili.pegasus.api.modelv2.LargeCoverSingleV7Item;
-import com.bilibili.pegasus.api.modelv2.LargeCoverSingleV8Item;
-import com.bilibili.pegasus.api.modelv2.LargeCoverSingleV9Item;
 import com.bilibili.pegasus.api.modelv2.LargeCoverV1Item;
-import com.bilibili.pegasus.api.modelv2.LargeCoverV7Item;
-import com.bilibili.pegasus.api.modelv2.LargeCoverV8Item;
-import com.bilibili.pegasus.api.modelv2.LargeCoverV9Item;
 import com.bilibili.pegasus.api.modelv2.PegasusFeedResponse;
 import com.bilibili.pegasus.api.modelv2.SmallCoverItem;
-import com.bilibili.pegasus.api.modelv2.SmallCoverV10Item;
 import com.bilibili.pegasus.api.modelv2.SmallCoverV2Item;
-import com.bilibili.pegasus.api.modelv2.SmallCoverV9Item;
 import com.bilibili.pegasus.api.modelv2.Tag;
 import com.bilibili.video.story.StoryDetail;
 import com.bilibili.video.story.api.StoryFeedResponse;
@@ -57,7 +48,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import app.revanced.bilibili.meta.pegasus.BannersItem;
 import app.revanced.bilibili.settings.Settings;
 import app.revanced.bilibili.utils.ArrayUtils;
 import app.revanced.bilibili.utils.Jsons;
@@ -168,23 +158,7 @@ public class PegasusPatch {
             coverLeftText = coverItem.coverLeftText1;
         } else if (item instanceof SmallCoverV2Item coverItem) {
             coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof SmallCoverV9Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof SmallCoverV10Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
         } else if (item instanceof LargeCoverV1Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverV7Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverV8Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverV9Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverSingleV7Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverSingleV8Item coverItem) {
-            coverLeftText = coverItem.coverLeftText1;
-        } else if (item instanceof LargeCoverSingleV9Item coverItem) {
             coverLeftText = coverItem.coverLeftText1;
         }
         return coverLeftText;
@@ -570,17 +544,12 @@ public class PegasusPatch {
     }
 
     private static void removeAdBanner(BasicIndexItem item) {
-        if (!(item instanceof BannersItem bannersItem)) return;
-        List<BannerItemV2> banners = bannersItem.getBanners();
-        if (banners == null || banners.isEmpty()) return;
-        banners.removeIf(banner -> "ad".equals(banner.type));
+        // the banner item classes of 8.86 no longer expose banners, ads are filtered in the json path
     }
 
     private static String getRcmdReason(BasicIndexItem item) {
         Tag reason = null;
         if (item instanceof SmallCoverItem coverItem) {
-            reason = coverItem.rcmdReason;
-        } else if (item instanceof SmallCoverV10Item coverItem) {
             reason = coverItem.rcmdReason;
         } else if (item instanceof SmallCoverV2Item coverItem) {
             try {
@@ -592,8 +561,6 @@ public class PegasusPatch {
             } catch (NoSuchFieldError ignored) {
                 reason = coverItem.rcmdReason;
             }
-        } else if (item instanceof SmallCoverV9Item coverItem) {
-            reason = coverItem.rcmdReason;
         }
         if (reason != null)
             return reason.text;
@@ -611,15 +578,7 @@ public class PegasusPatch {
             desc = coverItem.desc;
         } else if (item instanceof SmallCoverV2Item coverItem) {
             desc = coverItem.desc;
-        } else if (item instanceof SmallCoverV9Item coverItem) {
-            desc = coverItem.desc;
         } else if (item instanceof LargeCoverV1Item coverItem) {
-            desc = coverItem.desc;
-        } else if (item instanceof LargeCoverSingleV7Item coverItem) {
-            desc = coverItem.desc;
-        } else if (item instanceof LargeCoverSingleV8Item coverItem) {
-            desc = coverItem.desc;
-        } else if (item instanceof LargeCoverSingleV9Item coverItem) {
             desc = coverItem.desc;
         }
         return desc;
